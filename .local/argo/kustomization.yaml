@@ -1,11 +1,16 @@
-bases:
+resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  - namespace.yaml
+  - ingress.yaml
 
 namespace: argocd
 
 patches:
-  - configmap.yaml
-
-resources:
-  - namespace.yaml
-  - ingress.yaml
+  - patch: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: argocd-cmd-params-cm
+      data:
+        server.insecure: "true"
+        server.basehref: "/" # must match the ingress path prefix
