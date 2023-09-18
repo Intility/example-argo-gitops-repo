@@ -19,7 +19,7 @@ kubectl wait --namespace ingress-nginx \
   --timeout=90s
 
 printf "\n${STAR}${COLOR}installing argocd...${NORMAL}\n"
-kubectl apply -k argocd
+kubectl apply -k argo
 
 printf "\n${STAR}${COLOR}waiting for argocd to get ready...${NORMAL}\n"
 kubectl wait -n argocd \
