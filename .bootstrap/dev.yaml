@@ -9,7 +9,7 @@ spec:
     namespace: argocd
   source:
     path: 'dev'
-    repoURL: 'https://github.com/nkzk/example-argo-gitops-repo.git'
+    repoURL: 'https://github.com/Intility/example-argo-gitops-repo.git'
     targetRevision: HEAD
   project: 'default'
   # syncPolicy:

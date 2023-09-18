@@ -8,6 +8,6 @@ spec:
     namespace: app-2
   source:
     path: 'test'
-    repoURL: 'https://github.com/nkzk/example-project-gitops.git'
+    repoURL: 'https://github.com/Intility/example-project-gitops.git'
     targetRevision: HEAD
   project: 'project-1'
