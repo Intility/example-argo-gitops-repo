@@ -26,8 +26,8 @@ The process of adding new apps to this project could be further streamlined with
 ## Running locally:
 
 
-Run `sh .local/install.sh` script to create local Kind-cluster and start argoCD
+Run `sh .local/install.sh` script to create local Kind or Minikube cluster and start Argo CD.
 
-Create bootstrap app with `kubectl apply -f .bootstrap/dev.yaml`
+Create the bootstrap app with `kubectl apply -f .bootstrap/dev.yaml`
 
-To remove the local cluster you can run `sh .local/teardown.sh`
+To remove the local cluster you can run `kind delete cluster --name my-cluster` if you're using Kind and `minikube delete` if you're using minikube.

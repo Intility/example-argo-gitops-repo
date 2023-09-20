@@ -1,30 +1,55 @@
 #!/bin/bash
 
+export MINIKUBE=false
+
 BLUE=$(tput setaf 4)
 NORMAL=$(tput sgr0)
 BRIGHT=$(tput bold)
 COLOR=$BLUE
 STAR='🌟 '
 
+printf "\n%s%s%s\n" "$STAR" "$COLOR" "checking for kind or minikube..."
 if ! command -v kind &> /dev/null
 then
-  echo "kind could not be found. Please install kind and try again."
-  exit 1
+  echo "kind could not be found, checking for minikube..."
+  if ! command -v minikube &> /dev/null
+  then
+    echo "minikube could not be found. Please install minikube or kind and try again."
+    exit 1
+  else
+    export MINIKUBE=true
+  fi
 fi
 
-if ! kind create cluster --name my-cluster --config .local/kind-config.yaml
+if [ $MINIKUBE == true ]
 then
-  echo "Failed to create kind cluster. Exiting..."
-  exit 1
+  echo "creating cluster with minikube..."
+  if ! minikube start --addons ingress
+  then
+    echo "Failed to create minikube cluster. Exiting..."
+    exit 1
+  fi
+else
+  echo "creating cluster with kind..."
+  if ! kind create cluster --name my-cluster --config .local/kind-config.yaml
+  then
+    echo "Failed to create kind cluster. Exiting..."
+    exit 1
+  fi
 fi
 
-if [[ $(kubectl config current-context) != "kind-my-cluster" ]]; then
+if [[ $(kubectl config current-context) != "kind-my-cluster" ]] && [[ $(kubectl config current-context) != "minikube"  ]]
+then
   echo "Current context is not kind-my-cluster. Please switch to the correct context and try again."
   exit 1
 fi
 
-printf "\n%s%s%s\n" "$STAR" "$COLOR" "installing nginx ingress controller..."
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml || exit 1
+if [[ $MINIKUBE == false ]]
+then
+  printf "\n%s%s%s\n" "$STAR" "$COLOR" "installing nginx ingress controller..."
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml || exit 1
+
+fi
 
 printf "\n%s%s%s\n" "$STAR" "$COLOR" "waiting for ingress controller to get ready..."
 kubectl wait --namespace ingress-nginx \
@@ -32,6 +57,8 @@ kubectl wait --namespace ingress-nginx \
   --selector=app.kubernetes.io/component=controller \
   --timeout=90s
 
+printf "\n%s%s%s\n" "$STAR" "$COLOR" "sleep for 10 seconds to allow ingress controller to get ready..."
+sleep 10
 printf "\n%s%s%s\n" "$STAR" "$COLOR" "installing argocd..."
 kubectl apply -k .local/argo || exit 1
 
@@ -50,3 +77,10 @@ printf "\npassword: %s%s%s\n" "${BRIGHT}" "$argo_password" "${NORMAL}"
 
 echo ""
 echo "You can now create a bootstrap app by running 'kubectl apply -f .bootstrap/dev.yaml'"
+
+if [[ $MINIKUBE == true ]]
+then
+  echo ""
+  printf "\n%s%s%s\n" "$STAR" "$COLOR" "starting minkube tunnel... Use a new terminal to run 'kubectl apply -f .bootstrap/dev.yaml'"
+  minikube tunnel
+fi
